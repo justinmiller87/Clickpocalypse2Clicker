@@ -60,14 +60,14 @@ function clickQuickBarUpgrades() {
 		// upgradeBtn.text().indexOf('More Scroll Drops') !== -1 ||
 		// upgradeBtn.text().indexOf('More Potion Drops') !== -1 ||
 		// upgradeBtn.text().indexOf('Rare Item Drops') !== -1 ||
-		 upgradeBtn.text().indexOf('More Monsters') !== -1 ||
-		 upgradeBtn.text().indexOf('Average Monster Count') !== -1 ||
+		// upgradeBtn.text().indexOf('More Monsters') !== -1 ||
+		// upgradeBtn.text().indexOf('Average Monster Count') !== -1 ||
 		// upgradeBtn.text().indexOf('Item Level Bonus') !== -1 ||
 		// upgradeBtn.text().indexOf('More Treasure Chests') !== -1 ||
 
 		// --- Monster level upgrades (dynamic — number appended at runtime) ---
-		 upgradeBtn.text().indexOf('Unlock Monster Level') !== -1 ||
-		 upgradeBtn.text().indexOf('Retire Monster Level') !== -1 ||
+		// upgradeBtn.text().indexOf('Unlock Monster Level') !== -1 ||
+		// upgradeBtn.text().indexOf('Retire Monster Level') !== -1 ||
 
 		// --- Castle/farm actions ---
 		// upgradeBtn.text().indexOf('Attack Castle') !== -1 ||
@@ -83,7 +83,7 @@ function clickQuickBarUpgrades() {
 		// --- Achievements ---
 		// upgradeBtn.text().indexOf('Achievement') !== -1 ||
 
-		// --- Do not remove this line: ---
+		// --- Do not remove the line below. This is a catchall. ---
 		false
 		) {
 			continue;
