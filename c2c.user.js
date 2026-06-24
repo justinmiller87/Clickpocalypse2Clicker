@@ -34,8 +34,8 @@ const UPGRADE_CATEGORIES = [
 			{ key: 'moreScrollDrops', label: 'More Scroll Drops', defaultSkip: false },
 			{ key: 'morePotionDrops', label: 'More Potion Drops', defaultSkip: false },
 			{ key: 'rareItemDrops', label: 'Rare Item Drops', defaultSkip: false },
-			{ key: 'moreMonsters', label: 'More Monsters', defaultSkip: true },
-			{ key: 'averageMonsterCount', label: 'Average Monster Count', defaultSkip: true },
+			{ key: 'moreMonsters', label: 'More Monsters', defaultSkip: false },
+			{ key: 'averageMonsterCount', label: 'Average Monster Count', defaultSkip: false },
 			{ key: 'itemLevelBonus', label: 'Item Level Bonus', defaultSkip: false },
 			{ key: 'moreTreasureChests', label: 'More Treasure Chests', defaultSkip: false },
 		]
@@ -43,8 +43,8 @@ const UPGRADE_CATEGORIES = [
 	{
 		name: 'Monster Level Upgrades',
 		items: [
-			{ key: 'unlockMonsterLevel', label: 'Unlock Monster Level', defaultSkip: true },
-			{ key: 'retireMonsterLevel', label: 'Retire Monster Level', defaultSkip: true },
+			{ key: 'unlockMonsterLevel', label: 'Unlock Monster Level', defaultSkip: false },
+			{ key: 'retireMonsterLevel', label: 'Retire Monster Level', defaultSkip: false },
 		]
 	},
 	{
