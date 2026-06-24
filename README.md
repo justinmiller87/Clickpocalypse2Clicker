@@ -1,5 +1,5 @@
 # Clickpocalypse2Clicker
-Greasemonkey clickbot for Clickpocalypse II
+Tampermonkey clickbot for Clickpocalypse II
 
 This is a Tampermonkey script for automating clicks in [Clickpocalypse II](http://minmaxia.com/c2/).  It simulates "legitimate" clicks and doesn't modify any internal game data or use "cheat" codes. It was forked from [Dimecoin's](https://github.com/dimecoin/Clickpocalypse2Clicker) original script and updated to modernize the scripting, cut down on complexity, and add new features.
 
@@ -18,13 +18,15 @@ Download c2c.user.js and install as a user script.
 ### Quick bar
 
 * Clicks all quickbar upgrades in reverse order (i.e., buys most expensive items first, under the assumption they are the better upgrade).
-* You can prevent specific upgrades from being auto-clicked by editing the skip list inside the `clickQuickBarUpgrades` function. Each upgrade is listed as a commented-out line — remove the `//` at the start of a line to prevent that upgrade from being clicked. The default script will click everything. The full list of available upgrades is:
+* You can control which upgrades get auto-clicked from the **Script Options** tab added to the game's tab bar (next to Game, Priest, Ranger, etc.). Check an upgrade to skip it; your choices are saved automatically and survive script updates.
+
+  The following upgrades can be toggled:
 
   **Stat upgrades:**
   `More Gold Drops`, `More Good Gold Drops`, `Less Bad Gold Drops`, `More Item Drops`, `More Scroll Drops`, `More Potion Drops`, `Rare Item Drops`, `More Monsters`, `Average Monster Count`, `Item Level Bonus`, `More Treasure Chests`
 
   **Monster level upgrades** (dynamic — level number is appended at runtime):
-  `Unlock Monster Level`, `Retire Monster Level`
+  `Unlock Monster Level` *(skipped by default)*, `Retire Monster Level` *(skipped by default)*
 
   **Castle/farm actions:**
   `Attack Castle`, `Buy Monster Farm`, `Harvest Rewards`, `Collect Item Sales`
@@ -70,6 +72,10 @@ Download c2c.user.js and install as a user script.
 
 # Updates
 
+### 2.2.1
+* Replaced the skip list (commented code) with persistent per-upgrade checkboxes backed by Tampermonkey's `GM_setValue`/`GM_getValue`. Settings survive script updates.
+* Added a **Script Options** tab to the game's existing tab bar. Clicking it opens the skip-upgrade settings panel overlaid on the right-side upgrade area; clicking another tab hides it.
+
 ### 2.0.0
 * Script modernized: `var` → `const`/`let`, arrow functions, template literals, strict equality, explicit `parseInt` radix.
 * Logic extracted into named functions (`checkDifficultEncounter`, `lootChests`, `clickAPUpgrades`, `clickQuickBarUpgrades`, `clickCharacterSkills`, `handlePotions`, `clickScrolls`) to reduce complexity and improve readability.
@@ -95,3 +101,10 @@ Download c2c.user.js and install as a user script.
 * Added strategy for 'Potions Last Longer'.
 * Add AP Point Upgrade strategy.
 * Added strategy for "difficult encounters"
+
+# Simlair clickers
+* https://gist.github.com/koutoftimer/c497259d270640c00f4bd637b82eeb3a
+
+
+
+
