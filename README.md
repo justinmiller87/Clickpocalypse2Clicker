@@ -17,8 +17,8 @@ Download c2c.user.js and install as a user script.
 
 ### Quick bar
 
-* Clicks all quickbar upgrades in reverse order (i.e., buys most expensive items first, under the assumption they are the better upgrade).
-* You can control which upgrades get auto-clicked from the **Script Options** tab added to the game's tab bar (next to Game, Priest, Ranger, etc.). Check an upgrade to skip it; your choices are saved automatically and survive script updates.
+* Clicks all quickbar upgrades in reverse order (i.e., buys the most expensive items first, under the assumption they are the better upgrade).
+* You can control which upgrades get auto-clicked from the **Script Options** tab added to the game's tab bar (next to Game, Priest, Ranger, etc.). Click the checkbox next to an upgrade to skip it; your choices are saved automatically and survive script updates. By default, none are skipped, so the game will click all upgrades
 
   The following upgrades can be toggled:
 
@@ -26,7 +26,7 @@ Download c2c.user.js and install as a user script.
   `More Gold Drops`, `More Good Gold Drops`, `Less Bad Gold Drops`, `More Item Drops`, `More Scroll Drops`, `More Potion Drops`, `Rare Item Drops`, `More Monsters`, `Average Monster Count`, `Item Level Bonus`, `More Treasure Chests`
 
   **Monster level upgrades** (dynamic — level number is appended at runtime):
-  `Unlock Monster Level` *(skipped by default)*, `Retire Monster Level` *(skipped by default)*
+  `Unlock Monster Level`, `Retire Monster Level`
 
   **Castle/farm actions:**
   `Attack Castle`, `Buy Monster Farm`, `Harvest Rewards`, `Collect Item Sales`
@@ -39,24 +39,24 @@ Download c2c.user.js and install as a user script.
 
 ### Character Levels/Skills
 
-* No strategy yet, but will automatically level up characters and select first available skill upgrade in order.
+* No strategy yet, but will automatically level up characters and select the first available skill upgrade in order.
 
 ### Potions
-* Farm potions ('Faster Infestation', 'Faster Farming' and 'More Kills Per Farm') and 'Fast Walking' will be used as soon as they are obtained since they are beneficial outside of combat.
-* Scrolls potions ('Scrolls Auto Fire' and 'Infinite Scrolls') will not be used together.  Only one will be active as any given time since their functions overlap.
+* Farm potions ('Faster Infestation', 'Faster Farming', and 'More Kills Per Farm') and 'Fast Walking' will be used as soon as they are obtained since they are beneficial outside of combat.
+* Scrolls potions ('Scrolls Auto Fire' and 'Infinite Scrolls') will not be used together.  Only one will be active at any given time since their functions overlap.
 * Treasure Potions ('Random Treasure Room', 'Double Gold Drops' and 'Double Item Drops') aren't used if Scroll potions ('Scrolls Auto Fire' and 'Infinite Scrolls') are active (since it slows party down to much).  
-* All non-farm potions will only be used during encounters.  This is so they aren't "wasted" while walking around in peaceful overworld.
+* All non-farm potions will only be used during encounters.  This is so they aren't "wasted" while walking around in the peaceful overworld.
 * 'Potions Last Longer' is only used when you have 6 or more potions in inventory or if either Scroll Potion is active ('Scrolls Auto Fire' and 'Infinite Scrolls').
 
 ### Scrolls
-* If 'Infinite Scrolls' potion is active, then all scroll types will be used 4/second on all encounters.
-* If 'Scrolls Auto Fire' potion is active, no scrolls will used for normal encounters, since potion gives free use.  Will still use non-free scrolls during boss or difficult encounters.
+* If the 'Infinite Scrolls' potion is active, then all scroll types will be used 4/second on all encounters.
+* If the 'Scrolls Auto Fire' potion is active, no scrolls will be used for normal encounters, since the potion gives free use.  Will still use non-free scrolls during boss or difficult encounters.
 * 'Spider Web' scrolls will be liberally (till none are left) on normal encounters and not fired during boss encounters (bosses are immune).
-* All other scrolls will be fired at normal encounters, until only 15 are left.  This "reserve" quantity will be saved for boss encounters or "difficult encounters" (if one or more characters is stunned during fight).
-* Scrolls will be used if quantity is greater than 29 (to make room to pick up more).
+* All other scrolls will be fired at normal encounters, until only 15 are left.  This "reserve" quantity will be saved for boss encounters or "difficult encounters" (if one or more characters are stunned during the fight).
+* Scrolls will be used if the quantity is greater than 29 (to make room to pick up more).
 
 ### Points Upgrade
-* It will upgrade all AP Point Upgrades in as they are available.  The exception being 'Offline Time Bonus', it will never be clicked. (player can do manually if they wish).
+* It will upgrade all AP Point Upgrades as they are available.  The exception being 'Offline Time Bonus', it will never be clicked. (player can do manually if they wish).
 
 ### Game end/reset
 
@@ -66,9 +66,9 @@ Download c2c.user.js and install as a user script.
 
 * Character skill upgrade logic could be tweaked to maximize certain skills first.
 * Smarter use of Spider Web scroll (don't spam if all enemies are already stuck).
-* Reserve qty of scrolls could be done total, instead or per scroll type.
-* Potion 'Spells Cost Nothing' should be sold if no mage is in party?  Not sure if useful for fighters.
-* 'Fire Rain' and 'Spider Web' should have delay in casting.
+* Reserve quantity of scrolls could be done in total, instead of per scroll type.
+* Potion 'Spells Cost Nothing' should be sold if no mage is in the party?  Not sure if useful for fighters.
+* 'Fire Rain' and 'Spider Web' should have a delay in casting.
 
 # Updates
 
@@ -84,10 +84,11 @@ Download c2c.user.js and install as a user script.
 * Removed unused `totalScrolls` variable.
 * Added upgrade skip list — individual quickbar upgrades can be excluded from auto-clicking by editing a commented list in the script.
 
+## Dimecoin's original changes are below:
+
 ### 1.0.8
 * 'Faster Farming' is used as soon as it's obtained (since it's useful outside of combat).
 * Treasure Potions ('Random Treasure Room', 'Double Gold Drops' and 'Double Item Drops') aren't used if Scroll potions ('Scrolls Auto Fire' and 'Infinite Scrolls') are active (since it slows party down to much).  
-
 
 ### 1.0.7
 
