@@ -4,9 +4,11 @@
 // @description Clicker Bot for Clickpocalypse2
 // @include     http://minmaxia.com/c2/
 // @include     https://minmaxia.com/c2/
-// @version     2.2.0
+// @version     2.2.1
 // @grant       GM_setValue
 // @grant       GM_getValue
+// @updateURL   https://github.com/justinmiller87/Clickpocalypse2Clicker/raw/refs/heads/master/c2c.user.js
+// @downloadURL https://github.com/justinmiller87/Clickpocalypse2Clicker/raw/refs/heads/master/c2c.user.js
 // @require https://code.jquery.com/jquery-3.1.0.slim.min.js
 // ==/UserScript==
 
