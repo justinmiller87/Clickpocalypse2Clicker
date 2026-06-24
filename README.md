@@ -1,7 +1,7 @@
 # Clickpocalypse2Clicker
 Greasemonkey clickbot for Clickpocalypse II
 
-This is a greasemonkey script for automating clicks in [Clickpocalypse II](http://minmaxia.com/c2/).  It simulates "legitimate" clicks and doesn't modify any internal game data or use "cheat" codes.
+This is a Tampermonkey script for automating clicks in [Clickpocalypse II](http://minmaxia.com/c2/).  It simulates "legitimate" clicks and doesn't modify any internal game data or use "cheat" codes. It was forked from [Dimecoin's](https://github.com/dimecoin/Clickpocalypse2Clicker) original script and updated to modernize the scripting, cut down on complexity, and add new features.
 
 # Install
 
@@ -17,7 +17,23 @@ Download c2c.user.js and install as a user script.
 
 ### Quick bar
 
-* Clicks all quickbar upgrades in reverse order ( ie, buys most expensive items first, under the assumption they are the better upgrade).
+* Clicks all quickbar upgrades in reverse order (i.e., buys most expensive items first, under the assumption they are the better upgrade).
+* You can prevent specific upgrades from being auto-clicked by editing the skip list inside the `clickQuickBarUpgrades` function. Each upgrade is listed as a commented-out line — remove the `//` at the start of a line to prevent that upgrade from being clicked. The default script will click everything. The full list of available upgrades is:
+
+  **Stat upgrades:**
+  `More Gold Drops`, `More Good Gold Drops`, `Less Bad Gold Drops`, `More Item Drops`, `More Scroll Drops`, `More Potion Drops`, `Rare Item Drops`, `More Monsters`, `Average Monster Count`, `Item Level Bonus`, `More Treasure Chests`
+
+  **Monster level upgrades** (dynamic — level number is appended at runtime):
+  `Unlock Monster Level`, `Retire Monster Level`
+
+  **Castle/farm actions:**
+  `Attack Castle`, `Buy Monster Farm`, `Harvest Rewards`, `Collect Item Sales`
+
+  **Character/item actions:**
+  `Equip All Items`, `Equip ` *(partial match — also catches individual item equips)*, `Level Up` *(partial match — character name is appended at runtime)*
+
+  **Achievements:**
+  `Achievement`
 
 ### Character Levels/Skills
 
@@ -44,7 +60,7 @@ Download c2c.user.js and install as a user script.
 
 * No logic, will not click anything if you beat the game.
 
-# todos
+# Todos
 
 * Character skill upgrade logic could be tweaked to maximize certain skills first.
 * Smarter use of Spider Web scroll (don't spam if all enemies are already stuck).
@@ -52,7 +68,15 @@ Download c2c.user.js and install as a user script.
 * Potion 'Spells Cost Nothing' should be sold if no mage is in party?  Not sure if useful for fighters.
 * 'Fire Rain' and 'Spider Web' should have delay in casting.
 
-# updates
+# Updates
+
+### 2.0.0
+* Script modernized: `var` → `const`/`let`, arrow functions, template literals, strict equality, explicit `parseInt` radix.
+* Logic extracted into named functions (`checkDifficultEncounter`, `lootChests`, `clickAPUpgrades`, `clickQuickBarUpgrades`, `clickCharacterSkills`, `handlePotions`, `clickScrolls`) to reduce complexity and improve readability.
+* `checkDifficultEncounter` now exits as soon as a stunned character is found rather than continuing to search.
+* Fixed typo: `isPotionActive_InfinteScrolls` → `isPotionActive_InfiniteScrolls`.
+* Removed unused `totalScrolls` variable.
+* Added upgrade skip list — individual quickbar upgrades can be excluded from auto-clicking by editing a commented list in the script.
 
 ### 1.0.8
 * 'Faster Farming' is used as soon as it's obtained (since it's useful outside of combat).
@@ -71,10 +95,3 @@ Download c2c.user.js and install as a user script.
 * Added strategy for 'Potions Last Longer'.
 * Add AP Point Upgrade strategy.
 * Added strategy for "difficult encounters"
-
-# Simlair clickers
-* https://gist.github.com/koutoftimer/c497259d270640c00f4bd637b82eeb3a
-
-
-
-
