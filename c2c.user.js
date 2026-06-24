@@ -4,19 +4,198 @@
 // @description Clicker Bot for Clickpocalypse2
 // @include     http://minmaxia.com/c2/
 // @include     https://minmaxia.com/c2/
-// @version     2.0.0
-// @grant       none
+// @version     2.1.0
+// @grant       GM_setValue
+// @grant       GM_getValue
 // @require https://code.jquery.com/jquery-3.1.0.slim.min.js
 // ==/UserScript==
 
-// Removes the eslint error in Tampermonkey.
-/* global $ */
+// Removes eslint errors in Tampermonkey.
+/* global $, GM_setValue, GM_getValue */
 
 // This saves scrolls for boss encounters.
 const scrollReserve = 15;
 
 // This will fire scrolls no matter what, if we hit this limit... (so we can pick up new scrolls).
 const scrollUpperBound = 29;
+
+// Upgrade skip list — each entry has a key (used for saved settings), a label (matched against
+// the button text), an optional display name for the UI, and a default skip value.
+const UPGRADE_CATEGORIES = [
+	{
+		name: 'Stat Upgrades',
+		items: [
+			{ key: 'moreGoldDrops',       label: 'More Gold Drops',       defaultSkip: false },
+			{ key: 'moreGoodGoldDrops',   label: 'More Good Gold Drops',  defaultSkip: false },
+			{ key: 'lessBadGoldDrops',    label: 'Less Bad Gold Drops',   defaultSkip: false },
+			{ key: 'moreItemDrops',       label: 'More Item Drops',       defaultSkip: false },
+			{ key: 'moreScrollDrops',     label: 'More Scroll Drops',     defaultSkip: false },
+			{ key: 'morePotionDrops',     label: 'More Potion Drops',     defaultSkip: false },
+			{ key: 'rareItemDrops',       label: 'Rare Item Drops',       defaultSkip: false },
+			{ key: 'moreMonsters',        label: 'More Monsters',         defaultSkip: true  },
+			{ key: 'averageMonsterCount', label: 'Average Monster Count', defaultSkip: true  },
+			{ key: 'itemLevelBonus',      label: 'Item Level Bonus',      defaultSkip: false },
+			{ key: 'moreTreasureChests',  label: 'More Treasure Chests',  defaultSkip: false },
+		]
+	},
+	{
+		name: 'Monster Level Upgrades',
+		items: [
+			{ key: 'unlockMonsterLevel',  label: 'Unlock Monster Level',  defaultSkip: true  },
+			{ key: 'retireMonsterLevel',  label: 'Retire Monster Level',  defaultSkip: true  },
+		]
+	},
+	{
+		name: 'Castle / Farm Actions',
+		items: [
+			{ key: 'attackCastle',        label: 'Attack Castle',         defaultSkip: false },
+			{ key: 'buyMonsterFarm',      label: 'Buy Monster Farm',      defaultSkip: false },
+			{ key: 'harvestRewards',      label: 'Harvest Rewards',       defaultSkip: false },
+			{ key: 'collectItemSales',    label: 'Collect Item Sales',    defaultSkip: false },
+		]
+	},
+	{
+		name: 'Character / Item Actions',
+		items: [
+			{ key: 'equipAllItems',       label: 'Equip All Items',       defaultSkip: false },
+			{ key: 'equipItem',           label: 'Equip ',                defaultSkip: false, display: 'Equip (individual items)' },
+			{ key: 'levelUp',             label: 'Level Up',              defaultSkip: false, display: 'Level Up (characters)'   },
+		]
+	},
+	{
+		name: 'Achievements',
+		items: [
+			{ key: 'achievement',         label: 'Achievement',           defaultSkip: false },
+		]
+	},
+];
+
+// In-memory cache of skip settings, loaded from GM storage on startup and updated on checkbox change.
+let skipSettings = {};
+
+function loadSkipSettings() {
+	for (const category of UPGRADE_CATEGORIES) {
+		for (const item of category.items) {
+			skipSettings[item.key] = GM_getValue(item.key, item.defaultSkip);
+		}
+	}
+}
+
+function shouldSkipUpgrade(upgradeText) {
+	for (const category of UPGRADE_CATEGORIES) {
+		for (const item of category.items) {
+			if (skipSettings[item.key] && upgradeText.indexOf(item.label) !== -1) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+function createSettingsPanel() {
+	const style = document.createElement('style');
+	style.textContent = `
+		#c2c-toggle {
+			position: fixed;
+			top: 10px;
+			right: 10px;
+			z-index: 99999;
+			background: #444;
+			color: #fff;
+			border: 1px solid #666;
+			padding: 4px 10px;
+			cursor: pointer;
+			border-radius: 4px;
+			font-size: 14px;
+			font-family: Arial, sans-serif;
+		}
+		#c2c-toggle:hover { background: #555; }
+		#c2c-panel {
+			position: fixed;
+			top: 40px;
+			right: 10px;
+			z-index: 99998;
+			background: #222;
+			color: #eee;
+			padding: 12px 16px;
+			border-radius: 6px;
+			border: 1px solid #555;
+			display: none;
+			max-height: 80vh;
+			overflow-y: auto;
+			min-width: 220px;
+			font-family: Arial, sans-serif;
+			font-size: 13px;
+		}
+		#c2c-panel h3 {
+			margin: 0 0 10px 0;
+			font-size: 14px;
+			color: #fff;
+			border-bottom: 1px solid #444;
+			padding-bottom: 6px;
+		}
+		.c2c-category { margin-bottom: 10px; }
+		.c2c-category-name {
+			font-weight: bold;
+			color: #aaa;
+			font-size: 11px;
+			text-transform: uppercase;
+			margin-bottom: 4px;
+		}
+		.c2c-category label {
+			display: block;
+			cursor: pointer;
+			padding: 2px 0;
+		}
+		.c2c-category label:hover { color: #fff; }
+		.c2c-category input { margin-right: 6px; cursor: pointer; }
+	`;
+	document.head.appendChild(style);
+
+	const toggleBtn = document.createElement('button');
+	toggleBtn.id = 'c2c-toggle';
+	toggleBtn.textContent = '⚙ C2C';
+
+	const panel = document.createElement('div');
+	panel.id = 'c2c-panel';
+
+	const title = document.createElement('h3');
+	title.textContent = 'Skip Upgrades';
+	panel.appendChild(title);
+
+	for (const category of UPGRADE_CATEGORIES) {
+		const catDiv = document.createElement('div');
+		catDiv.className = 'c2c-category';
+
+		const catName = document.createElement('div');
+		catName.className = 'c2c-category-name';
+		catName.textContent = category.name;
+		catDiv.appendChild(catName);
+
+		for (const item of category.items) {
+			const label = document.createElement('label');
+			const checkbox = document.createElement('input');
+			checkbox.type = 'checkbox';
+			checkbox.checked = skipSettings[item.key];
+			checkbox.addEventListener('change', () => {
+				skipSettings[item.key] = checkbox.checked;
+				GM_setValue(item.key, checkbox.checked);
+			});
+			label.appendChild(checkbox);
+			label.appendChild(document.createTextNode(item.display ?? item.label.trim()));
+			catDiv.appendChild(label);
+		}
+
+		panel.appendChild(catDiv);
+	}
+
+	toggleBtn.addEventListener('click', () => {
+		panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+	});
+
+	document.body.appendChild(toggleBtn);
+	document.body.appendChild(panel);
+}
 
 function checkDifficultEncounter() {
 	const pos = ['A', 'B', 'C', 'E', 'E', 'F'];
@@ -48,46 +227,7 @@ function clickAPUpgrades() {
 function clickQuickBarUpgrades() {
 	for (let i = 43; i >= 0; i--) {
 		const upgradeBtn = $(`#upgradeButtonContainer_${i}`);
-		if (
-
-		// upgradeButtonContainer upgrade skip list — uncomment (remove the "//") to prevent auto-clicking a specific upgrade:
-
-		// --- Stat upgrades (F-object) ---
-		// upgradeBtn.text().indexOf('More Gold Drops') !== -1 ||
-		// upgradeBtn.text().indexOf('More Good Gold Drops') !== -1 ||
-		// upgradeBtn.text().indexOf('Less Bad Gold Drops') !== -1 ||
-		// upgradeBtn.text().indexOf('More Item Drops') !== -1 ||
-		// upgradeBtn.text().indexOf('More Scroll Drops') !== -1 ||
-		// upgradeBtn.text().indexOf('More Potion Drops') !== -1 ||
-		// upgradeBtn.text().indexOf('Rare Item Drops') !== -1 ||
-		// upgradeBtn.text().indexOf('More Monsters') !== -1 ||
-		// upgradeBtn.text().indexOf('Average Monster Count') !== -1 ||
-		// upgradeBtn.text().indexOf('Item Level Bonus') !== -1 ||
-		// upgradeBtn.text().indexOf('More Treasure Chests') !== -1 ||
-
-		// --- Monster level upgrades (dynamic — number appended at runtime) ---
-		// upgradeBtn.text().indexOf('Unlock Monster Level') !== -1 ||
-		// upgradeBtn.text().indexOf('Retire Monster Level') !== -1 ||
-
-		// --- Castle/farm actions ---
-		// upgradeBtn.text().indexOf('Attack Castle') !== -1 ||
-		// upgradeBtn.text().indexOf('Buy Monster Farm') !== -1 ||
-		// upgradeBtn.text().indexOf('Harvest Rewards') !== -1 ||
-		// upgradeBtn.text().indexOf('Collect Item Sales') !== -1 ||
-
-		// --- Character/item actions ---
-		// upgradeBtn.text().indexOf('Equip All Items') !== -1 ||
-		// upgradeBtn.text().indexOf('Equip ') !== -1 ||   // individual item equips (note: also catches "Equip All Items")
-		// upgradeBtn.text().indexOf('Level Up') !== -1 ||  // character level ups (dynamic — name appended)
-
-		// --- Achievements ---
-		// upgradeBtn.text().indexOf('Achievement') !== -1 ||
-
-		// --- Do not remove the line below. This is a catchall. ---
-		false
-		) {
-			continue;
-		}
+		if (shouldSkipUpgrade(upgradeBtn.text())) continue;
 		clickIt(`#upgradeButtonContainer_${i}`);
 	}
 }
@@ -208,6 +348,8 @@ function clickScrolls(isBossEncounter, isDifficultEncounter, isPotionActive_Scro
 
 $(() => {
 	console.log(`Starting Clickpocalypse2Clicker: ${GM_info.script.version}`);
+	loadSkipSettings();
+	createSettingsPanel();
 
 	setInterval(() => {
 		const isBossEncounter = ($('.bossEncounterNotificationDiv').length > 0);
