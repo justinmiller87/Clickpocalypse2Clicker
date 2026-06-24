@@ -102,10 +102,3 @@ Download c2c.user.js and install as a user script.
 * Added strategy for 'Potions Last Longer'.
 * Add AP Point Upgrade strategy.
 * Added strategy for "difficult encounters"
-
-# Simlair clickers
-* https://gist.github.com/koutoftimer/c497259d270640c00f4bd637b82eeb3a
-
-
-
-
