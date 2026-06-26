@@ -4,7 +4,7 @@
 // @description Clicker Bot for Clickpocalypse2
 // @include     http://minmaxia.com/c2/
 // @include     https://minmaxia.com/c2/
-// @version     2.2.1
+// @version     2.2.2
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @updateURL   https://github.com/justinmiller87/Clickpocalypse2Clicker/raw/refs/heads/master/c2c.user.js
@@ -45,6 +45,15 @@ const UPGRADE_CATEGORIES = [
 		items: [
 			{ key: 'unlockMonsterLevel', label: 'Unlock Monster Level', defaultSkip: false },
 			{ key: 'retireMonsterLevel', label: 'Retire Monster Level', defaultSkip: false },
+		]
+	},
+	{
+		name: 'Unlock Monster Level — Skip by Assessment',
+		items: [
+			{ key: 'assessEasyMonsters', label: 'Assessment: Easy Monsters', defaultSkip: false },
+			{ key: 'assessChallenging', label: 'Assessment: Challenging', defaultSkip: false },
+			{ key: 'assessVeryTough', label: 'Assessment: Very Tough!', defaultSkip: false },
+			{ key: 'assessTooHard', label: 'Assessment: TOO HARD!', defaultSkip: false },
 		]
 	},
 	{
