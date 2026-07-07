@@ -47,6 +47,7 @@ Download c2c.user.js and install as a user script.
 * Treasure Potions ('Random Treasure Room', 'Double Gold Drops' and 'Double Item Drops') aren't used if Scroll potions ('Scrolls Auto Fire' and 'Infinite Scrolls') are active (since it slows party down to much).  
 * All non-farm potions will only be used during encounters.  This is so they aren't "wasted" while walking around in the peaceful overworld.
 * 'Potions Last Longer' is only used when you have 6 or more potions in inventory or if either Scroll Potion is active ('Scrolls Auto Fire' and 'Infinite Scrolls').
+* Added option to turn off the automatic use of a potion or remove the potion from the list altogether without enabling it. This can be useful if you are trying to speedrun through and you don't want more monsters or random boss fights, or for whatever reason you may find. 
 
 ### Scrolls
 * If the 'Infinite Scrolls' potion is active, then all scroll types will be used 4/second on all encounters.
@@ -71,6 +72,13 @@ Download c2c.user.js and install as a user script.
 * 'Fire Rain' and 'Spider Web' should have a delay in casting.
 
 # Updates
+
+### 2.4.0
+
+* Fixed leveling logic so all characters level up evenly after an idle session.
+
+### 2.3.0
+* Added option to manually select or dismiss a potion entirely
 
 ### 2.2.1
 * Replaced the skip list (commented code) with persistent per-upgrade checkboxes backed by Tampermonkey's `GM_setValue`/`GM_getValue`. Settings survive script updates.
