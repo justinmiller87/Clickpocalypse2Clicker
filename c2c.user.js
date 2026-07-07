@@ -4,7 +4,7 @@
 // @description Clicker Bot for Clickpocalypse2
 // @include     http://minmaxia.com/c2/
 // @include     https://minmaxia.com/c2/
-// @version     2.3.0
+// @version     2.4.0
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @updateURL   https://github.com/justinmiller87/Clickpocalypse2Clicker/raw/refs/heads/master/c2c.user.js
@@ -371,10 +371,36 @@ function clickAPUpgrades() {
 	}
 }
 
+// A "Level Up" quickbar button's second row shows the level the character will reach after
+// this upgrade (e.g. "Level 34"). Reading that lets us keep characters level with each other
+// without needing to cross-reference the separate character info panel.
+function getLevelUpTargetLevel(upgradeBtn) {
+	const levelText = upgradeBtn.find('tr').eq(1).find('td span').eq(0).text();
+	const match = levelText.match(/\d+/);
+	return match ? parseInt(match[0], 10) : null;
+}
+
 function clickQuickBarUpgrades() {
+	// Find the lowest target level among all pending character level-ups, so we level everyone
+	// to N before anyone moves to N+1, rather than favoring whichever character's button happens
+	// to land at a given quickbar index.
+	let minTargetLevel = Infinity;
 	for (let i = 43; i >= 0; i--) {
 		const upgradeBtn = $(`#upgradeButtonContainer_${i}`);
-		if (shouldSkipUpgrade(upgradeBtn.text())) continue;
+		if (upgradeBtn.text().indexOf('Level Up') === -1) continue;
+		const targetLevel = getLevelUpTargetLevel(upgradeBtn);
+		if (targetLevel !== null && targetLevel < minTargetLevel) minTargetLevel = targetLevel;
+	}
+
+	for (let i = 43; i >= 0; i--) {
+		const upgradeBtn = $(`#upgradeButtonContainer_${i}`);
+		const upgradeText = upgradeBtn.text();
+		if (shouldSkipUpgrade(upgradeText)) continue;
+
+		if (upgradeText.indexOf('Level Up') !== -1 && getLevelUpTargetLevel(upgradeBtn) !== minTargetLevel) {
+			continue;
+		}
+
 		clickIt(`#upgradeButtonContainer_${i}`);
 	}
 }

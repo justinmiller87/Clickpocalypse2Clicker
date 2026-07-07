@@ -39,7 +39,7 @@ Download c2c.user.js and install as a user script.
 
 ### Character Levels/Skills
 
-* No strategy yet, but will automatically level up characters and select the first available skill upgrade in order.
+* Characters are leveled up evenly: on each pass, only the character(s) currently at the lowest level are leveled up, so the whole party advances level-by-level together instead of one character racing ahead. Will also select the first available skill upgrade in order. This is due to the script performing multiple upgrades upon returning from an idle session. Previously, it would upgrade the lowest in the list character until it couldn't any longer before moving up the list. This should prevent this issue from occurring in the future.
 
 ### Potions
 * Farm potions ('Faster Infestation', 'Faster Farming', and 'More Kills Per Farm') and 'Fast Walking' will be used as soon as they are obtained since they are beneficial outside of combat.
