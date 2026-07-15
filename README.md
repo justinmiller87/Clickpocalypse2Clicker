@@ -77,6 +77,10 @@ Download c2c.user.js and install as a user script.
 
 # Updates
 
+### 2.5.1
+
+- Fixed a bug where the "level up evenly" logic could stall leveling for the entire party. The lowest-level character's Level Up button was used to set the target for everyone, even while that button was still disabled (character couldn't yet afford it) — which blocked every other character's already-affordable level-up until the lagging one caught up. Now only affordable Level Up buttons are considered when picking the target level.
+
 ### 2.5.0
 
 - Cleaned up the code to reduce CPU usage and memory.

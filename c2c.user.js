@@ -4,7 +4,7 @@
 // @description Clicker Bot for Clickpocalypse2
 // @include     http://minmaxia.com/c2/
 // @include     https://minmaxia.com/c2/
-// @version     2.5
+// @version     2.5.1
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @grant		GM.setValue
@@ -465,13 +465,16 @@ function findCharPosByName(name) {
 }
 
 function clickQuickBarUpgrades() {
-	// Find the lowest target level among all pending character level-ups, so we level everyone
+	// Find the lowest target level among all AFFORDABLE character level-ups, so we level everyone
 	// to N before anyone moves to N+1, rather than favoring whichever character's button happens
-	// to land at a given quickbar index.
+	// to land at a given quickbar index. Buttons the character can't afford yet (disabled) are
+	// excluded from this — otherwise one lagging, currently-broke character would freeze leveling
+	// for the entire party until they alone caught up.
 	let minTargetLevel = Infinity;
 	for (let i = 43; i >= 0; i--) {
 		const upgradeBtn = $(`#upgradeButtonContainer_${i}`);
 		if (upgradeBtn.text().indexOf('Level Up') === -1) continue;
+		if (upgradeBtn.hasClass('disabledUpgradeButton')) continue;
 		const targetLevel = getLevelUpTargetLevel(upgradeBtn);
 		if (targetLevel !== null && targetLevel < minTargetLevel) minTargetLevel = targetLevel;
 	}
