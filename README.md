@@ -1,12 +1,12 @@
 # Clickpocalypse2Clicker
 
-Tampermonkey clickbot for Clickpocalypse II
+Greasemonkey/Tampermonkey clickbot for Clickpocalypse II
 
 This is a Tampermonkey script for automating clicks in [Clickpocalypse II](http://minmaxia.com/c2/). It simulates "legitimate" clicks and doesn't modify any internal game data or use "cheat" codes. It was forked from [Dimecoin's](https://github.com/dimecoin/Clickpocalypse2Clicker) original script and updated to modernize the scripting, cut down on complexity, and add new features.
 
 # Install
 
-Requires [Greasymonkey](https://addons.mozilla.org/en-US/firefox/addon/greasemonkey/) for Firefox or [Tampermonkey](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo?hl=en) for Chrome.
+Requires [Greasemonkey](https://addons.mozilla.org/en-US/firefox/addon/greasemonkey/) for Firefox or [Tampermonkey](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo?hl=en) for Chrome.
 
 Download c2c.user.js and install as a user script.
 
@@ -40,7 +40,10 @@ Download c2c.user.js and install as a user script.
 
 ### Character Levels/Skills
 
-- Characters are leveled up evenly: on each pass, only the character(s) currently at the lowest level are leveled up, so the whole party advances level-by-level together instead of one character racing ahead. Will also select the first available skill upgrade in order. This is due to the script performing multiple upgrades upon returning from an idle session. Previously, it would upgrade the lowest in the list character until it couldn't any longer before moving up the list. This should prevent this issue from occurring in the future.
+- Characters are leveled up evenly
+  - On each pass, only the character(s) currently at the lowest level are leveled up, so the whole party advances level-by-level together instead of one character racing ahead.
+  - It will also select the first available skill upgrade in order.
+  - This is the only exception to buying upgrades from the bottom to the top. Previously, it would upgrade the lowest in the list character until it couldn't any longer before moving up the list. Because the logic said that the lowest possible option was the best option, you could potentially have your last character be several levels higher than the other party members after returning from an idle session.
 
 ### Potions
 
