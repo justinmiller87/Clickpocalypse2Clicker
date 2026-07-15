@@ -4,7 +4,7 @@
 // @description Clicker Bot for Clickpocalypse2
 // @include     http://minmaxia.com/c2/
 // @include     https://minmaxia.com/c2/
-// @version     2.4.5
+// @version     2.5
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @grant		GM.setValue
@@ -121,7 +121,22 @@ let skipSettings = {};
 // In-memory cache of potion settings ({ skipUse, autoDrop } per potion key), loaded from GM storage.
 let potionSettings = {};
 
+// How often (in seconds) to scan the AP upgrade tree. AP upgrades are rare/expensive, so there's
+// no need to hammer the DOM every second — this is user-configurable in the settings panel.
+let apUpgradeCheckIntervalSeconds = 60;
+
+// Cached reference to the next not-yet-owned AP upgrade cell, so clickAPUpgrades doesn't need to
+// re-scan the whole 22-cell tree on every check — only when the cached target gets bought.
+let nextAPUpgradeCell = null;
+
+// Character positions (0-4) whose skill trees need scanning this tick. Populated when a
+// character's "Level Up" quickbar button is clicked (the only source of new skill points),
+// drained after each scan. Starts full so we catch any skill points already pending at script
+// startup.
+let pendingSkillCheckCharPositions = new Set([0, 1, 2, 3, 4]);
+
 function loadSkipSettings() {
+	apUpgradeCheckIntervalSeconds = GM_getValue('apUpgradeCheckIntervalSeconds', 60);
 	for (const category of UPGRADE_CATEGORIES) {
 		for (const item of category.items) {
 			skipSettings[item.key] = GM_getValue(item.key, item.defaultSkip);
@@ -248,6 +263,32 @@ function appendPotionRow(container, item) {
 	container.appendChild(row);
 }
 
+function appendAPCheckIntervalControl(container) {
+	const row = document.createElement('label');
+	row.style.cssText = 'display: flex; align-items: center; padding: 3px 5px; border: 1px solid #2B2B32; margin-bottom: 8px;';
+
+	const labelText = document.createElement('span');
+	labelText.textContent = 'Check AP upgrades every (seconds):';
+	labelText.style.cssText = 'flex: 1;';
+
+	const input = document.createElement('input');
+	input.type = 'number';
+	input.min = '5';
+	input.step = '5';
+	input.value = apUpgradeCheckIntervalSeconds;
+	input.style.cssText = 'width: 60px; margin-left: 6px;';
+	input.addEventListener('change', () => {
+		const value = Math.max(5, parseInt(input.value, 10) || 60);
+		apUpgradeCheckIntervalSeconds = value;
+		input.value = value;
+		GM_setValue('apUpgradeCheckIntervalSeconds', value);
+	});
+
+	row.appendChild(labelText);
+	row.appendChild(input);
+	container.appendChild(row);
+}
+
 function buildSettingsContent(container) {
 	appendSectionHeader(container, 'Upgrades');
 
@@ -255,6 +296,8 @@ function buildSettingsContent(container) {
 	intro.style.cssText = 'padding: 5px; margin-bottom: 8px; border: 1px solid #2B2B32; color: #AAA; font-size: 11px;';
 	intro.textContent = 'Checked upgrades will NOT be auto-clicked. Settings are saved automatically.';
 	container.appendChild(intro);
+
+	appendAPCheckIntervalControl(container);
 
 	for (const category of UPGRADE_CATEGORIES) {
 		appendCategoryHeader(container, category.name);
@@ -364,12 +407,34 @@ function lootChests() {
 	clickSelector($('#treasureChestLootButtonPanel').find('.lootButton'));
 }
 
-function clickAPUpgrades() {
+// Finds the next AP upgrade cell that isn't owned yet. Upgrade cells are 'ownedUpgradeButton'
+// once purchased, 'disabledUpgradeButton' while too expensive to afford, and plain
+// 'upgradeButton' once affordable — so we don't need to read AP totals or costs at all, just
+// walk forward until we find one that isn't owned.
+function findNextAPUpgradeCell() {
 	for (let row = 0; row < 12; row++) {
 		if (row === 3) continue; // skip 'Offline Time Bonus' upgrade
 		for (let col = 0; col < 2; col++) {
-			clickIt(`#pointUpgradesContainer_${row}_${col}_${row}`);
+			const cell = $(`#pointUpgradesContainer_${row}_${col}_${row}`);
+			if (cell.length && !cell.hasClass('ownedUpgradeButton')) {
+				return cell;
+			}
 		}
+	}
+	return null;
+}
+
+function clickAPUpgrades() {
+	if (!nextAPUpgradeCell || !nextAPUpgradeCell.length || nextAPUpgradeCell.hasClass('ownedUpgradeButton')) {
+		nextAPUpgradeCell = findNextAPUpgradeCell();
+	}
+	if (!nextAPUpgradeCell) return;
+
+	// Not disabled means it's either affordable now or the repeatable Offline Time Bonus slot —
+	// go ahead and click it, then immediately look up the next target for the following check.
+	if (!nextAPUpgradeCell.hasClass('disabledUpgradeButton')) {
+		clickSelector(nextAPUpgradeCell);
+		nextAPUpgradeCell = findNextAPUpgradeCell();
 	}
 }
 
@@ -380,6 +445,23 @@ function getLevelUpTargetLevel(upgradeBtn) {
 	const levelText = upgradeBtn.find('tr').eq(1).find('td span').eq(0).text();
 	const match = levelText.match(/\d+/);
 	return match ? parseInt(match[0], 10) : null;
+}
+
+// A "Level Up" quickbar button's first row names the character (e.g. "Level Up Hugo").
+function getLevelUpCharacterName(upgradeBtn) {
+	const text = upgradeBtn.find('tr').eq(0).find('td').eq(1).find('span').eq(0).text();
+	return text.replace(/^Level Up /, '').trim();
+}
+
+function getCharacterNameByPos(charPos) {
+	return $(`#gameTabAdventurerInfo${charPos}`).find('td').eq(1).text().trim();
+}
+
+function findCharPosByName(name) {
+	for (let charPos = 0; charPos < 5; charPos++) {
+		if (getCharacterNameByPos(charPos) === name) return charPos;
+	}
+	return null;
 }
 
 function clickQuickBarUpgrades() {
@@ -399,8 +481,13 @@ function clickQuickBarUpgrades() {
 		const upgradeText = upgradeBtn.text();
 		if (shouldSkipUpgrade(upgradeText)) continue;
 
-		if (upgradeText.indexOf('Level Up') !== -1 && getLevelUpTargetLevel(upgradeBtn) !== minTargetLevel) {
-			continue;
+		if (upgradeText.indexOf('Level Up') !== -1) {
+			if (getLevelUpTargetLevel(upgradeBtn) !== minTargetLevel) continue;
+
+			// Leveling up is the main source of new character skill points — mark this character
+			// for a skill-tree scan instead of scanning every character's tree every tick.
+			const charPos = findCharPosByName(getLevelUpCharacterName(upgradeBtn));
+			if (charPos !== null) pendingSkillCheckCharPositions.add(charPos);
 		}
 
 		clickIt(`#upgradeButtonContainer_${i}`);
@@ -408,7 +495,9 @@ function clickQuickBarUpgrades() {
 }
 
 function clickCharacterSkills() {
-	for (let charPos = 0; charPos < 5; charPos++) {
+	if (pendingSkillCheckCharPositions.size === 0) return;
+
+	for (const charPos of pendingSkillCheckCharPositions) {
 		for (let col = 0; col < 9; col++) {
 			for (let row = 0; row < 4; row++) {
 				// There is an ending col on all, not sure why yet
@@ -416,6 +505,7 @@ function clickCharacterSkills() {
 			}
 		}
 	}
+	pendingSkillCheckCharPositions.clear();
 }
 
 function handlePotions(isBossEncounter, isEncounter) {
@@ -529,10 +619,19 @@ function clickScrolls(isBossEncounter, isDifficultEncounter, isPotionActive_Scro
 	}
 }
 
+// AP upgrades are rare/expensive, so they get their own slower, user-configurable timer instead
+// of running on the main 1-second loop. Self-rescheduling so a settings change takes effect on
+// the very next check rather than requiring a page reload.
+function scheduleAPUpgradeCheck() {
+	clickAPUpgrades();
+	setTimeout(scheduleAPUpgradeCheck, Math.max(5, apUpgradeCheckIntervalSeconds) * 1000);
+}
+
 $(() => {
 	console.log(`Starting Clickpocalypse2Clicker: ${GM_info.script.version}`);
 	loadSkipSettings();
 	addBotTab();
+	scheduleAPUpgradeCheck();
 
 	setInterval(() => {
 		const isBossEncounter = ($('.bossEncounterNotificationDiv').length > 0);
@@ -540,7 +639,6 @@ $(() => {
 		const isDifficultEncounter = checkDifficultEncounter();
 
 		lootChests();
-		clickAPUpgrades();
 		clickQuickBarUpgrades();
 		clickCharacterSkills();
 
