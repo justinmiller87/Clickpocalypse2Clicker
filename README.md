@@ -10,6 +10,10 @@ Requires [Greasemonkey](https://addons.mozilla.org/en-US/firefox/addon/greasemon
 
 Download c2c.user.js and install as a user script.
 
+### Beta channel
+
+New features land first in `c2c.user.beta.js` before being promoted to the stable `c2c.user.js`. Install it instead if you want early access and don't mind the occasional rough edge — it installs as a separate script (own name, own update URL), so it runs side by side with the stable version without conflicting or sharing saved settings.
+
 # Strategies
 
 ### Loot
@@ -44,6 +48,7 @@ Download c2c.user.js and install as a user script.
   - On each pass, only the character(s) currently at the lowest level are leveled up, so the whole party advances level-by-level together instead of one character racing ahead.
   - It will also select the first available skill upgrade in order.
   - This is the only exception to buying upgrades from the bottom to the top. Previously, it would upgrade the lowest in the list character until it couldn't any longer before moving up the list. Because the logic said that the lowest possible option was the best option, you could potentially have your last character be several levels higher than the other party members after returning from an idle session.
+- _(Beta only — see `c2c.user.beta.js`)_ Each character's skill tree has 4 independent columns that each unlock top-to-bottom on their own pace, sharing one pool of skill points. By default, whatever's available gets bought in column order. The "Character Skill Priority" section in Script Options lets you rank a character's columns (1 = highest priority, 2, 3...) so a ranked column claims that character's skill points before others; a column left at 0 just falls back to the default order of left to right, top to bottom.
 
 ### Potions
 
@@ -79,6 +84,11 @@ Download c2c.user.js and install as a user script.
 - 'Fire Rain' and 'Spider Web' should have a delay in casting.
 
 # Updates
+
+### 2.6.0-beta1 (`c2c.user.beta.js`)
+
+- Added character skill column priority. Each character's skill tree has 4 independent columns that each unlock top-to-bottom on their own pace, sharing one pool of skill points. A new "Character Skill Priority" section in Script Options lets you rank a character's columns (1 = highest priority, 2, 3...) so a ranked column claims that character's skill points before others; leave a column at 0 (the default) to keep the existing behavior of just buying whatever's available in order of left to right, top to bottom.
+- Not yet promoted to the stable release — try it via the beta channel (see Install above) first.
 
 ### 2.5.1
 
