@@ -20,9 +20,9 @@ New features land first in `c2c.user.beta.js` before being promoted to the stabl
 
 - Always loots Chests, Bookcases and Weapon Racks when first entering a room.
 
-### Quick bar
+### Purchasable Upgrades
 
-- Clicks all quickbar upgrades in reverse order (i.e., buys the most expensive items first, under the assumption they are the better upgrade).
+- Clicks all purchasable upgrades in reverse order (i.e., buys the most expensive items first, under the assumption they are the better upgrade).
 - You can control which upgrades get auto-clicked from the **Script Options** tab added to the game's tab bar (next to Game, Priest, Ranger, etc.). Click the checkbox next to an upgrade to skip it; your choices are saved automatically and survive script updates. By default, none are skipped, so the game will click all upgrades
 
   The following upgrades can be toggled:
@@ -85,6 +85,15 @@ New features land first in `c2c.user.beta.js` before being promoted to the stabl
 
 # Updates
 
+### 2.6.0-beta3 (`c2c.user.beta.js`)
+
+- Script Options reorganized to cut down on scrolling: the original "Upgrades" section is now labeled "Purchasable Upgrades" for clarity, each major section (Purchasable Upgrades, Potions, Character Skill Priority) is now collapsible by clicking its header, added "Expand All"/"Collapse All" buttons at the top of the tab, and moved the AP check-interval control to the bottom of the tab.
+
+### 2.6.0-beta2 (`c2c.user.beta.js`)
+
+- Character Skill Priority rows in Script Options are now labeled with each character's live name and class (e.g. "Hugo (Fighter):") instead of generic "Character 1/2/3/4/5", refreshed each time the panel is opened.
+- Stopped scanning a character's skill tree after level 37 — the tree tops out at 36 skills (4 columns x 9 rows), and the last one's level requirement is met by level 37 at the latest, so further level-ups can't unlock anything new to check for.
+
 ### 2.6.0-beta1 (`c2c.user.beta.js`)
 
 - Added character skill column priority. Each character's skill tree has 4 independent columns that each unlock top-to-bottom on their own pace, sharing one pool of skill points. A new "Character Skill Priority" section in Script Options lets you rank a character's columns (1 = highest priority, 2, 3...) so a ranked column claims that character's skill points before others; leave a column at 0 (the default) to keep the existing behavior of just buying whatever's available in order of left to right, top to bottom.
@@ -99,7 +108,7 @@ New features land first in `c2c.user.beta.js` before being promoted to the stabl
 - Cleaned up the code to reduce CPU usage and memory.
   - Before, it was checking every second to see if an AP point could be bought and checking every single one, performing queries 24 times per second, regardless of if it was purchased or not. This has been changed by default to checking every 60 seconds only if the next upgrade can be purchased. This change drops to a single query once every 60 seconds. The default time between checks can be changed in the 'Script Options' menu.
   - The script was additionally checking each and every skill slot on all characters every second to see if an upgrade was available to purchase, for a total of 180 queries per second. This was changed so that it will only check a character after it levels up.
-  - Quick bar upgrades remain as-is, as the numbers change dynamically enough that checking if there are upgrades to purchase once per second makes sense. For the nerds, this is happening 88 times per second.
+  - Purchasable upgrades remain as-is, as the numbers change dynamically enough that checking if there are upgrades to purchase once per second makes sense. For the nerds, this is happening 88 times per second.
 
 ### 2.4.5
 
@@ -125,7 +134,7 @@ New features land first in `c2c.user.beta.js` before being promoted to the stabl
 - `checkDifficultEncounter` now exits as soon as a stunned character is found rather than continuing to search.
 - Fixed typo: `isPotionActive_InfinteScrolls` → `isPotionActive_InfiniteScrolls`.
 - Removed unused `totalScrolls` variable.
-- Added upgrade skip list — individual quickbar upgrades can be excluded from auto-clicking by editing a commented list in the script.
+- Added upgrade skip list — individual purchasable upgrades can be excluded from auto-clicking by editing a commented list in the script.
 
 ## Dimecoin's original changes are below:
 
