@@ -64,8 +64,8 @@ New features land first in `c2c.beta.user.js` before being promoted to the stabl
 - If the 'Infinite Scrolls' potion is active, then all scroll types will be used 4/second on all encounters.
 - If the 'Scrolls Auto Fire' potion is active, no scrolls will be used for normal encounters, since the potion gives free use. Will still use non-free scrolls during boss or difficult encounters.
 - 'Spider Web' scrolls will be liberally (till none are left) on normal encounters and not fired during boss encounters (bosses are immune).
-- All other scrolls will be fired at normal encounters, until only 15 are left. This "reserve" quantity will be saved for boss encounters or "difficult encounters" (if one or more characters are stunned during the fight).
-- Scrolls will be used if the quantity is greater than 29 (to make room to pick up more).
+- All other scrolls will be fired at normal encounters, until only 15 are left — or 25 _(Beta only — see `c2c.beta.user.js`)_ once the "More Scrolls in Stack" AP upgrade is purchased. This "reserve" quantity will be saved for boss encounters or "difficult encounters" (if one or more characters are stunned during the fight).
+- Scrolls will be used if the quantity is greater than 29 (to make room to pick up more) — or 39 _(Beta only — see `c2c.beta.user.js`)_ once the "More Scrolls in Stack" AP upgrade is purchased, since it raises the max scroll stock from 30 to 40.
 
 ### Points Upgrade
 
@@ -85,6 +85,11 @@ New features land first in `c2c.beta.user.js` before being promoted to the stabl
 - 'Fire Rain' and 'Spider Web' should have a delay in casting.
 
 # Updates
+
+### 2.6.6 (`c2c.beta.user.js`)
+
+- The scroll-firing cap (fire scrolls to make room once you're holding too many) now adjusts automatically based on the "More Scrolls in Stack" AP upgrade: 29 by default, 39 once that upgrade (which raises max scroll stock from 30 to 40) is purchased. Previously this was a hardcoded 29 regardless of the upgrade.
+- The boss-encounter scroll reserve gets the same treatment: 15 by default, 25 once "More Scrolls in Stack" is purchased (scaled by the same +10 the upgrade grants), so the reserve keeps the same relationship to the larger max stock. Previously this was a hardcoded 15.
 
 ### 2.6.5 (`c2c.beta.user.js`)
 

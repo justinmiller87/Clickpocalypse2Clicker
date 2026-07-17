@@ -4,7 +4,7 @@
 // @description Clicker Bot for Clickpocalypse2 (Beta channel — new features land here first, may be less stable)
 // @include     http://minmaxia.com/c2/
 // @include     https://minmaxia.com/c2/
-// @version     2.6.5
+// @version     2.6.6
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @grant		GM.setValue
@@ -17,19 +17,17 @@
 // Removes eslint errors in Tampermonkey.
 /* global $ */
 
-// This saves scrolls for boss encounters.
-const scrollReserve = 15;
-
-// This will fire scrolls no matter what, if we hit this limit... (so we can pick up new scrolls).
-const scrollUpperBound = 29;
-
-// A character's skill tree tops out at 36 skills (4 columns x 9 rows), and the last one's level
-// requirement is met by level 37 at the latest — so there's no point scanning for new skill
-// unlocks from further level-ups past this point.
+/*
+ * A character's skill tree tops out at 36 skills (4 columns x 9 rows), and the last one's level
+ * requirement is met by level 37 at the latest — so there's no point scanning for new skill
+ * unlocks from further level-ups past this point.
+ */
 const MAX_SKILL_UNLOCK_LEVEL = 37;
 
-// Upgrade skip list — each entry has a key (used for saved settings), a label (matched against
-// the button text), an optional display name for the UI, and a default skip value.
+/*
+ * Upgrade skip list — each entry has a key (used for saved settings), a label (matched against
+ * the button text), an optional display name for the UI, and a default skip value.
+ */
 const UPGRADE_CATEGORIES = [
   {
     name: "Stat Upgrades",
@@ -148,10 +146,12 @@ const UPGRADE_CATEGORIES = [
   },
 ];
 
-// Potion list — each entry has a key (used for saved settings) and a label (matched exactly
-// against the potion name). Each potion has two independent settings: skipUse (don't auto-drink
-// it) and autoDrop (discard it on sight via the in-game dropPotionButton, regardless of skipUse).
-// Sourced from the game's own potion definitions (the Mq array in c2.js), listed in the same order.
+/*
+ * Potion list — each entry has a key (used for saved settings) and a label (matched exactly
+ * against the potion name). Each potion has two independent settings: skipUse (don't auto-drink
+ * it) and autoDrop (discard it on sight via the in-game dropPotionButton, regardless of skipUse).
+ * Sourced from the game's own potion definitions (the Mq array in c2.js), listed in the same order.
+ */
 const POTION_CATEGORIES = [
   {
     name: "Potion Effects",
@@ -186,28 +186,38 @@ let skipSettings = {};
 // In-memory cache of potion settings ({ skipUse, autoDrop } per potion key), loaded from GM storage.
 let potionSettings = {};
 
-// In-memory cache of character skill-tree column priorities: skillPrioritySettings[charPos] is a
-// 4-element array (one per skill column, 0-indexed) of priority ranks. 0 means unprioritized —
-// that column is only bought as part of the default full-tree scan. A positive rank (1, 2, ...)
-// makes a column claim the character's shared skill points before lower-ranked/unprioritized ones.
+/*
+ * In-memory cache of character skill-tree column priorities: skillPrioritySettings[charPos] is a
+ * 4-element array (one per skill column, 0-indexed) of priority ranks. 0 means unprioritized —
+ * that column is only bought as part of the default full-tree scan. A positive rank (1, 2, ...)
+ * makes a column claim the character's shared skill points before lower-ranked/unprioritized ones.
+ */
 let skillPrioritySettings = {};
 
-// What to do when the game-over screen appears: 'none' (default — leave the choice to the
-// player), 'prestige', or 'continue'. See handleGameOver().
+/*
+ * What to do when the game-over screen appears: 'none' (default — leave the choice to the
+ * player), 'prestige', or 'continue'. See handleGameOver().
+ */
 let gameOverAction = "none";
 
-// How often (in seconds) to scan the AP upgrade tree. AP upgrades are rare/expensive, so there's
-// no need to hammer the DOM every second — this is user-configurable in the settings panel.
+/*
+ * How often (in seconds) to scan the AP upgrade tree. AP upgrades are rare/expensive, so there's
+ * no need to hammer the DOM every second — this is user-configurable in the settings panel.
+ */
 let apUpgradeCheckIntervalSeconds = 60;
 
-// Cached reference to the next not-yet-owned AP upgrade cell, so clickAPUpgrades doesn't need to
-// re-scan the whole 22-cell tree on every check — only when the cached target gets bought.
+/*
+ * Cached reference to the next not-yet-owned AP upgrade cell, so clickAPUpgrades doesn't need to
+ * re-scan the whole 22-cell tree on every check — only when the cached target gets bought.
+ */
 let nextAPUpgradeCell = null;
 
-// Character positions (0-4) whose skill trees need scanning this tick. Populated when a
-// character's "Level Up" quickbar button is clicked (the only source of new skill points),
-// drained after each scan. Starts full so we catch any skill points already pending at script
-// startup.
+/*
+ * Character positions (0-4) whose skill trees need scanning this tick. Populated when a
+ * character's "Level Up" quickbar button is clicked (the only source of new skill points),
+ * drained after each scan. Starts full so we catch any skill points already pending at script
+ * startup.
+ */
 let pendingSkillCheckCharPositions = new Set([0, 1, 2, 3, 4]);
 
 function loadSkipSettings() {
@@ -250,8 +260,10 @@ function shouldSkipUpgrade(upgradeText) {
 function shouldSkipPotionUse(potionName) {
   for (const category of POTION_CATEGORIES) {
     for (const item of category.items) {
-      // Exact match — some potion names are substrings of others (e.g. "Double Gold" vs.
-      // "Double Gold Drops"), unlike upgrade button text which always has extra decoration.
+      /*
+       * Exact match — some potion names are substrings of others (e.g. "Double Gold" vs.
+       * "Double Gold Drops"), unlike upgrade button text which always has extra decoration.
+       */
       if (potionSettings[item.key].skipUse && potionName === item.label) {
         return true;
       }
@@ -271,13 +283,17 @@ function shouldAutoDropPotion(potionName) {
   return false;
 }
 
-// Major section headers (Purchasable Upgrades, Potions, Character Skill Priority) double as
-// collapse/expand toggles for their own content. setExpanded() is registered in
-// collapsibleSections so the Expand All / Collapse All buttons can drive every section at once.
+/*
+ * Major section headers (Purchasable Upgrades, Potions, Character Skill Priority) double as
+ * collapse/expand toggles for their own content. setExpanded() is registered in
+ * collapsibleSections so the Expand All / Collapse All buttons can drive every section at once.
+ */
 const collapsibleSections = [];
 
-// Creates a clickable, collapsible section header and returns the <div> that section's content
-// should be appended into (instead of appending directly to `container`).
+/*
+ * Creates a clickable, collapsible section header and returns the <div> that section's content
+ * should be appended into (instead of appending directly to `container`).
+ */
 function appendSectionHeader(container, text) {
   const headerWrap = document.createElement("div");
   headerWrap.style.cssText =
@@ -462,8 +478,10 @@ function appendGameOverActionRow(container, option) {
   container.appendChild(row);
 }
 
-// Row/label/input elements from appendSkillPriorityRow, indexed by charPos, so
-// refreshSkillPriorityRows can update them with live character data without rebuilding the panel.
+/*
+ * Row/label/input elements from appendSkillPriorityRow, indexed by charPos, so
+ * refreshSkillPriorityRows can update them with live character data without rebuilding the panel.
+ */
 const skillPriorityRows = [];
 const skillPriorityLabels = [];
 const skillPriorityInputs = [];
@@ -514,11 +532,13 @@ function appendSkillPriorityRow(container, charPos) {
   container.appendChild(row);
 }
 
-// The settings panel is built once at startup, before character names/classes may be loaded, and
-// is only ever shown/hidden afterward rather than rebuilt — so rows are refreshed here instead,
-// each time the panel is opened, to reflect whatever's currently live in the game. A character
-// with no name yet hasn't been unlocked (e.g. the 5th party slot, before its AP upgrade), so its
-// row is shown as "Locked" and its priority inputs are disabled rather than left settable.
+/*
+ * The settings panel is built once at startup, before character names/classes may be loaded, and
+ * is only ever shown/hidden afterward rather than rebuilt — so rows are refreshed here instead,
+ * each time the panel is opened, to reflect whatever's currently live in the game. A character
+ * with no name yet hasn't been unlocked (e.g. the 5th party slot, before its AP upgrade), so its
+ * row is shown as "Locked" and its priority inputs are disabled rather than left settable.
+ */
 function refreshSkillPriorityRows() {
   for (let charPos = 0; charPos < skillPriorityLabels.length; charPos++) {
     const label = skillPriorityLabels[charPos];
@@ -540,11 +560,13 @@ function refreshSkillPriorityRows() {
   }
 }
 
-// Priorities are keyed by party slot, not by character — there's no name/class guaranteed to
-// carry over a prestige (c2.js's game-over screen lets you rename/reclass on a "PRESTIGE - Start
-// over with a new, level 1 party" reset), so a slot's old priority could silently end up applied
-// to a completely different character next run. Clearing on prestige avoids that; "CONTINUE -
-// Conquer a new set of castles with your current party" leaves everything untouched.
+/*
+ * Priorities are keyed by party slot, not by character — there's no name/class guaranteed to
+ * carry over a prestige (c2.js's game-over screen lets you rename/reclass on a "PRESTIGE - Start
+ * over with a new, level 1 party" reset), so a slot's old priority could silently end up applied
+ * to a completely different character next run. Clearing on prestige avoids that; "CONTINUE -
+ * Conquer a new set of castles with your current party" leaves everything untouched.
+ */
 function resetAllSkillPriorities() {
   for (let charPos = 0; charPos < 5; charPos++) {
     skillPrioritySettings[charPos] = [0, 0, 0, 0];
@@ -557,10 +579,12 @@ function resetAllSkillPriorities() {
   }
 }
 
-// The game-over screen's PRESTIGE/CONTINUE options (see c2.js) are bound via a plain `onclick`
-// property, not the mouseup handling the rest of this script relies on for game buttons — so this
-// uses a real .click() to actually trigger them, which also fires the delegated "click" listener
-// below that resets skill priorities on prestige, exactly as if the player had clicked it directly.
+/*
+ * The game-over screen's PRESTIGE/CONTINUE options (see c2.js) are bound via a plain `onclick`
+ * property, not the mouseup handling the rest of this script relies on for game buttons — so this
+ * uses a real .click() to actually trigger them, which also fires the delegated "click" listener
+ * below that resets skill priorities on prestige, exactly as if the player had clicked it directly.
+ */
 function handleGameOver() {
   if (gameOverAction === "none") return;
 
@@ -656,8 +680,10 @@ function addBotTab() {
     return;
   }
 
-  // Insert our panel as a proper sibling of the game's other .tabContainer divs.
-  // position: absolute + all-zero insets fills the same bounds as every other tab.
+  /*
+   * Insert our panel as a proper sibling of the game's other .tabContainer divs.
+   * position: absolute + all-zero insets fills the same bounds as every other tab.
+   */
   const settingsPanel = document.createElement("div");
   settingsPanel.id = "c2c-settings";
   settingsPanel.style.cssText = `
@@ -732,10 +758,12 @@ function lootChests() {
   clickSelector($("#treasureChestLootButtonPanel").find(".lootButton"));
 }
 
-// Finds the next AP upgrade cell that isn't owned yet. Upgrade cells are 'ownedUpgradeButton'
-// once purchased, 'disabledUpgradeButton' while too expensive to afford, and plain
-// 'upgradeButton' once affordable — so we don't need to read AP totals or costs at all, just
-// walk forward until we find one that isn't owned.
+/*
+ * Finds the next AP upgrade cell that isn't owned yet. Upgrade cells are 'ownedUpgradeButton'
+ * once purchased, 'disabledUpgradeButton' while too expensive to afford, and plain
+ * 'upgradeButton' once affordable — so we don't need to read AP totals or costs at all, just
+ * walk forward until we find one that isn't owned.
+ */
 function findNextAPUpgradeCell() {
   for (let row = 0; row < 12; row++) {
     if (row === 3) continue; // skip 'Offline Time Bonus' upgrade
@@ -749,6 +777,27 @@ function findNextAPUpgradeCell() {
   return null;
 }
 
+/*
+ * The "More Scrolls in Stack" AP upgrade (c2.js's Jr[0], the first entry in the AP tree — laid
+ * out row-major 2-per-row, so it lands at row 0 col 0) raises max scroll stock from 30 to 40. This
+ * will fire scrolls no matter what once the current amount hits that cap, so we can pick up more.
+ */
+function getScrollUpperBound() {
+  return $("#pointUpgradesContainer_0_0_0").hasClass("ownedUpgradeButton")
+    ? 39
+    : 29;
+}
+
+/*
+ * This saves scrolls for boss encounters, scaled by the same +10 as the "More Scrolls in Stack"
+ * AP upgrade so the reserve keeps the same relationship to the new, larger max scroll stock.
+ */
+function getScrollReserve() {
+  return $("#pointUpgradesContainer_0_0_0").hasClass("ownedUpgradeButton")
+    ? 25
+    : 15;
+}
+
 function clickAPUpgrades() {
   if (
     !nextAPUpgradeCell ||
@@ -759,17 +808,21 @@ function clickAPUpgrades() {
   }
   if (!nextAPUpgradeCell) return;
 
-  // Not disabled means it's either affordable now or the repeatable Offline Time Bonus slot —
-  // go ahead and click it, then immediately look up the next target for the following check.
+  /*
+   * Not disabled means it's either affordable now or the repeatable Offline Time Bonus slot —
+   * go ahead and click it, then immediately look up the next target for the following check.
+   */
   if (!nextAPUpgradeCell.hasClass("disabledUpgradeButton")) {
     clickSelector(nextAPUpgradeCell);
     nextAPUpgradeCell = findNextAPUpgradeCell();
   }
 }
 
-// A "Level Up" quickbar button's second row shows the level the character will reach after
-// this upgrade (e.g. "Level 34"). Reading that lets us keep characters level with each other
-// without needing to cross-reference the separate character info panel.
+/*
+ * A "Level Up" quickbar button's second row shows the level the character will reach after
+ * this upgrade (e.g. "Level 34"). Reading that lets us keep characters level with each other
+ * without needing to cross-reference the separate character info panel.
+ */
 function getLevelUpTargetLevel(upgradeBtn) {
   const levelText = upgradeBtn.find("tr").eq(1).find("td span").eq(0).text();
   const match = levelText.match(/\d+/);
@@ -807,11 +860,13 @@ function findCharPosByName(name) {
 }
 
 function clickQuickBarUpgrades() {
-  // Find the lowest target level among all AFFORDABLE character level-ups, so we level everyone
-  // to N before anyone moves to N+1, rather than favoring whichever character's button happens
-  // to land at a given quickbar index. Buttons the character can't afford yet (disabled) are
-  // excluded from this — otherwise one lagging, currently-broke character would freeze leveling
-  // for the entire party until they alone caught up.
+  /*
+   * Find the lowest target level among all AFFORDABLE character level-ups, so we level everyone
+   * to N before anyone moves to N+1, rather than favoring whichever character's button happens
+   * to land at a given quickbar index. Buttons the character can't afford yet (disabled) are
+   * excluded from this — otherwise one lagging, currently-broke character would freeze leveling
+   * for the entire party until they alone caught up.
+   */
   let minTargetLevel = Infinity;
   for (let i = 43; i >= 0; i--) {
     const upgradeBtn = $(`#upgradeButtonContainer_${i}`);
@@ -830,9 +885,11 @@ function clickQuickBarUpgrades() {
     if (upgradeText.indexOf("Level Up") !== -1) {
       if (getLevelUpTargetLevel(upgradeBtn) !== minTargetLevel) continue;
 
-      // Leveling up is the main source of new character skill points — mark this character
-      // for a skill-tree scan instead of scanning every character's tree every tick. Past
-      // MAX_SKILL_UNLOCK_LEVEL, no further level-up can unlock a new skill, so skip it.
+      /*
+       * Leveling up is the main source of new character skill points — mark this character
+       * for a skill-tree scan instead of scanning every character's tree every tick. Past
+       * MAX_SKILL_UNLOCK_LEVEL, no further level-up can unlock a new skill, so skip it.
+       */
       if (minTargetLevel <= MAX_SKILL_UNLOCK_LEVEL) {
         const charPos = findCharPosByName(getLevelUpCharacterName(upgradeBtn));
         if (charPos !== null) pendingSkillCheckCharPositions.add(charPos);
@@ -843,10 +900,12 @@ function clickQuickBarUpgrades() {
   }
 }
 
-// Returns this character's skill-tree columns (0-3) that have a priority rank set (> 0), ordered
-// highest priority (lowest rank number) first. Each column is an independent, top-to-bottom skill
-// sequence — see c2.js's Zz.prototype.aa, which builds each of the 4 columns from its own separate
-// array — so "prioritize a column" just means "let it claim shared skill points before the rest."
+/*
+ * Returns this character's skill-tree columns (0-3) that have a priority rank set (> 0), ordered
+ * highest priority (lowest rank number) first. Each column is an independent, top-to-bottom skill
+ * sequence — see c2.js's Zz.prototype.aa, which builds each of the 4 columns from its own separate
+ * array — so "prioritize a column" just means "let it claim shared skill points before the rest."
+ */
 function getPrioritizedSkillColumns(charPos) {
   const priorities = skillPrioritySettings[charPos] || [0, 0, 0, 0];
   return [0, 1, 2, 3]
@@ -858,10 +917,12 @@ function clickCharacterSkills() {
   if (pendingSkillCheckCharPositions.size === 0) return;
 
   for (const charPos of pendingSkillCheckCharPositions) {
-    // Give prioritized columns first claim on the character's shared skill points, in the
-    // user-configured order, before the default full-tree scan below. Clicking an already-owned
-    // or not-yet-affordable cell is a harmless no-op, so re-scanning everything afterward is safe
-    // — and when nothing is prioritized, this loop runs zero times and behavior is unchanged.
+    /*
+     * Give prioritized columns first claim on the character's shared skill points, in the
+     * user-configured order, before the default full-tree scan below. Clicking an already-owned
+     * or not-yet-affordable cell is a harmless no-op, so re-scanning everything afterward is safe
+     * — and when nothing is prioritized, this loop runs zero times and behavior is unchanged.
+     */
     for (const priorityCol of getPrioritizedSkillColumns(charPos)) {
       for (let position = 0; position < 9; position++) {
         clickIt(
@@ -979,6 +1040,9 @@ function clickScrolls(
   isPotionActive_ScrollsAutoFire,
   isPotionActive_InfiniteScrolls,
 ) {
+  const scrollUpperBound = getScrollUpperBound();
+  const scrollReserve = getScrollReserve();
+
   for (let i = 0; i < 6; i++) {
     const scrollCell = $(`#scrollButtonCell${i}`);
     const scrollButton = scrollCell.find(".scrollButton");
@@ -1002,8 +1066,10 @@ function clickScrolls(
       continue;
     }
 
-    // Fire 0 scrolls if Autofire is active... it fires them for free, so let's not waste ours.
-    // unless boss encounter, we still want to double up on the big guys...
+    /*
+     * Fire 0 scrolls if Autofire is active... it fires them for free, so let's not waste ours.
+     * unless boss encounter, we still want to double up on the big guys...
+     */
     if (
       isPotionActive_ScrollsAutoFire &&
       !isBossEncounter &&
@@ -1011,15 +1077,19 @@ function clickScrolls(
     )
       continue;
 
-    // 1 === spider web scroll. Always fire at normal encounters.
-    // Boss are immune to spider web, so won't fire them.
+    /*
+     * 1 === spider web scroll. Always fire at normal encounters.
+     * Boss are immune to spider web, so won't fire them.
+     */
     if (i === 1 && !isBossEncounter) {
       clickSelector(scrollButton);
     }
 
     if (i !== 1) {
-      // Keep scrolls in reserve if generic encounter so we have them for boss.
-      // No limit if this is a boss encounter.
+      /*
+       * Keep scrolls in reserve if generic encounter so we have them for boss.
+       * No limit if this is a boss encounter.
+       */
       if (
         scrollAmount > scrollReserve ||
         isBossEncounter ||
@@ -1031,9 +1101,11 @@ function clickScrolls(
   }
 }
 
-// AP upgrades are rare/expensive, so they get their own slower, user-configurable timer instead
-// of running on the main 1-second loop. Self-rescheduling so a settings change takes effect on
-// the very next check rather than requiring a page reload.
+/*
+ * AP upgrades are rare/expensive, so they get their own slower, user-configurable timer instead
+ * of running on the main 1-second loop. Self-rescheduling so a settings change takes effect on
+ * the very next check rather than requiring a page reload.
+ */
 function scheduleAPUpgradeCheck() {
   clickAPUpgrades();
   setTimeout(
@@ -1048,8 +1120,10 @@ $(() => {
   addBotTab();
   scheduleAPUpgradeCheck();
 
-  // Delegated so it still catches clicks on the game-over screen even though it isn't in the DOM
-  // until the game actually ends.
+  /*
+   * Delegated so it still catches clicks on the game-over screen even though it isn't in the DOM
+   * until the game actually ends.
+   */
   $(document).on("click", ".gameOverBlurb .upgradeButton", function () {
     if ($(this).text().indexOf("PRESTIGE") !== -1) resetAllSkillPriorities();
   });
