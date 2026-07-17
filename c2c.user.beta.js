@@ -4,7 +4,7 @@
 // @description Clicker Bot for Clickpocalypse2 (Beta channel — new features land here first, may be less stable)
 // @include     http://minmaxia.com/c2/
 // @include     https://minmaxia.com/c2/
-// @version     2.6.0-beta3
+// @version     2.6.1
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @grant		GM.setValue

@@ -85,6 +85,10 @@ New features land first in `c2c.user.beta.js` before being promoted to the stabl
 
 # Updates
 
+### 2.6.1 (`c2c.user.beta.js`)
+
+- Fixed `@version` to be plain dot-separated numbers again (was `2.6.0-beta3`). Tampermonkey's update check doesn't reliably compare hyphenated pre-release suffixes, so installs on an earlier beta version were reporting "no update found" even after a newer beta was pushed. The beta channel is still identified by its separate `@name`/`@updateURL`, not by anything in the version string, so going forward beta versions are just numbered normally (2.6.1, 2.6.2, ...).
+
 ### 2.6.0-beta3 (`c2c.user.beta.js`)
 
 - Script Options reorganized to cut down on scrolling: the original "Upgrades" section is now labeled "Purchasable Upgrades" for clarity, each major section (Purchasable Upgrades, Potions, Character Skill Priority) is now collapsible by clicking its header, added "Expand All"/"Collapse All" buttons at the top of the tab, and moved the AP check-interval control to the bottom of the tab.
