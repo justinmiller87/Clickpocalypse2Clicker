@@ -4,7 +4,7 @@
 // @description Clicker Bot for Clickpocalypse2 (Beta channel — new features land here first, may be less stable)
 // @include     http://minmaxia.com/c2/
 // @include     https://minmaxia.com/c2/
-// @version     2.6.3
+// @version     2.6.4
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @grant		GM.setValue
@@ -504,6 +504,23 @@ function refreshSkillPriorityRows() {
   }
 }
 
+// Priorities are keyed by party slot, not by character — there's no name/class guaranteed to
+// carry over a prestige (c2.js's game-over screen lets you rename/reclass on a "PRESTIGE - Start
+// over with a new, level 1 party" reset), so a slot's old priority could silently end up applied
+// to a completely different character next run. Clearing on prestige avoids that; "CONTINUE -
+// Conquer a new set of castles with your current party" leaves everything untouched.
+function resetAllSkillPriorities() {
+  for (let charPos = 0; charPos < 5; charPos++) {
+    skillPrioritySettings[charPos] = [0, 0, 0, 0];
+    for (let col = 0; col < 4; col++) {
+      GM_setValue(`skillPriorityChar${charPos}Col${col}`, 0);
+    }
+    for (const input of skillPriorityInputs[charPos] || []) {
+      input.value = 0;
+    }
+  }
+}
+
 function buildSettingsContent(container) {
   appendExpandCollapseControls(container);
 
@@ -968,6 +985,12 @@ $(() => {
   loadSkipSettings();
   addBotTab();
   scheduleAPUpgradeCheck();
+
+  // Delegated so it still catches clicks on the game-over screen even though it isn't in the DOM
+  // until the game actually ends.
+  $(document).on("click", ".gameOverBlurb .upgradeButton", function () {
+    if ($(this).text().indexOf("PRESTIGE") !== -1) resetAllSkillPriorities();
+  });
 
   setInterval(() => {
     const isBossEncounter = $(".bossEncounterNotificationDiv").length > 0;

@@ -48,7 +48,7 @@ New features land first in `c2c.beta.user.js` before being promoted to the stabl
   - On each pass, only the character(s) currently at the lowest level are leveled up, so the whole party advances level-by-level together instead of one character racing ahead.
   - It will also select the first available skill upgrade in order.
   - This is the only exception to buying upgrades from the bottom to the top. Previously, it would upgrade the lowest in the list character until it couldn't any longer before moving up the list. Because the logic said that the lowest possible option was the best option, you could potentially have your last character be several levels higher than the other party members after returning from an idle session.
-- _(Beta only — see `c2c.beta.user.js`)_ Each character's skill tree has 4 independent columns that each unlock top-to-bottom on their own pace, sharing one pool of skill points. By default, whatever's available gets bought in column order. The "Character Skill Priority" section in Script Options lets you rank a character's columns (1 = highest priority, 2, 3...) so a ranked column claims that character's skill points before others; a column left at 0 just falls back to the default order of left to right, top to bottom.
+- _(Beta only — see `c2c.beta.user.js`)_ Each character's skill tree has 4 independent columns that each unlock top-to-bottom on their own pace, sharing one pool of skill points. By default, whatever's available gets bought in column order. The "Character Skill Priority" section in Script Options lets you rank a character's columns (1 = highest priority, 2, 3...) so a ranked column claims that character's skill points before others; a column left at 0 just falls back to the default order of left to right, top to bottom. Priorities are per party slot, so choosing "PRESTIGE" on the game-over screen resets them all to 0 automatically, since the next run's characters/classes aren't guaranteed to land in the same slots; choosing "CONTINUE" leaves them as-is.
 
 ### Potions
 
@@ -84,6 +84,10 @@ New features land first in `c2c.beta.user.js` before being promoted to the stabl
 - 'Fire Rain' and 'Spider Web' should have a delay in casting.
 
 # Updates
+
+### 2.6.4 (`c2c.beta.user.js`)
+
+- Character Skill Priority settings are keyed by party slot, not by character, and there's no name/class guaranteed to carry over a prestige — so a slot's old priority could silently end up applied to a different character next run. All priorities now automatically reset to 0 when you choose "PRESTIGE - Start over with a new, level 1 party" on the game-over screen; choosing "CONTINUE" with your current party leaves them untouched.
 
 ### 2.6.3 (`c2c.beta.user.js`)
 
