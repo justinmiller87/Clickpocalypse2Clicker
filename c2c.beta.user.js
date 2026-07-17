@@ -4,7 +4,7 @@
 // @description Clicker Bot for Clickpocalypse2 (Beta channel — new features land here first, may be less stable)
 // @include     http://minmaxia.com/c2/
 // @include     https://minmaxia.com/c2/
-// @version     2.6.4
+// @version     2.6.5
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @grant		GM.setValue
@@ -192,6 +192,10 @@ let potionSettings = {};
 // makes a column claim the character's shared skill points before lower-ranked/unprioritized ones.
 let skillPrioritySettings = {};
 
+// What to do when the game-over screen appears: 'none' (default — leave the choice to the
+// player), 'prestige', or 'continue'. See handleGameOver().
+let gameOverAction = "none";
+
 // How often (in seconds) to scan the AP upgrade tree. AP upgrades are rare/expensive, so there's
 // no need to hammer the DOM every second — this is user-configurable in the settings panel.
 let apUpgradeCheckIntervalSeconds = 60;
@@ -211,6 +215,7 @@ function loadSkipSettings() {
     "apUpgradeCheckIntervalSeconds",
     60,
   );
+  gameOverAction = GM_getValue("gameOverAction", "none");
   for (const category of UPGRADE_CATEGORIES) {
     for (const item of category.items) {
       skipSettings[item.key] = GM_getValue(item.key, item.defaultSkip);
@@ -426,6 +431,37 @@ function appendAPCheckIntervalControl(container) {
   container.appendChild(row);
 }
 
+const GAME_OVER_ACTIONS = [
+  { value: "none", label: "Do nothing (default)" },
+  { value: "prestige", label: "Prestige" },
+  { value: "continue", label: "Continue" },
+];
+
+function appendGameOverActionRow(container, option) {
+  const row = document.createElement("label");
+  row.style.cssText =
+    "display: flex; align-items: center; padding: 3px 5px; border: 1px solid #2B2B32; margin-bottom: 2px; cursor: pointer;";
+
+  const radio = document.createElement("input");
+  radio.type = "radio";
+  radio.name = "gameOverAction";
+  radio.value = option.value;
+  radio.checked = gameOverAction === option.value;
+  radio.style.marginRight = "6px";
+  radio.addEventListener("change", () => {
+    if (!radio.checked) return;
+    gameOverAction = option.value;
+    GM_setValue("gameOverAction", option.value);
+  });
+
+  const labelText = document.createElement("span");
+  labelText.textContent = option.label;
+
+  row.appendChild(radio);
+  row.appendChild(labelText);
+  container.appendChild(row);
+}
+
 // Row/label/input elements from appendSkillPriorityRow, indexed by charPos, so
 // refreshSkillPriorityRows can update them with live character data without rebuilding the panel.
 const skillPriorityRows = [];
@@ -521,6 +557,19 @@ function resetAllSkillPriorities() {
   }
 }
 
+// The game-over screen's PRESTIGE/CONTINUE options (see c2.js) are bound via a plain `onclick`
+// property, not the mouseup handling the rest of this script relies on for game buttons — so this
+// uses a real .click() to actually trigger them, which also fires the delegated "click" listener
+// below that resets skill priorities on prestige, exactly as if the player had clicked it directly.
+function handleGameOver() {
+  if (gameOverAction === "none") return;
+
+  const targetText = gameOverAction === "prestige" ? "PRESTIGE" : "CONTINUE";
+  $(".gameOverBlurb .upgradeButton").each(function () {
+    if ($(this).text().indexOf(targetText) !== -1) this.click();
+  });
+}
+
 function buildSettingsContent(container) {
   appendExpandCollapseControls(container);
 
@@ -573,6 +622,19 @@ function buildSettingsContent(container) {
 
   for (let charPos = 0; charPos < 5; charPos++) {
     appendSkillPriorityRow(skillPriorityBody, charPos);
+  }
+
+  const gameOverBody = appendSectionHeader(container, "Game Over Screen");
+
+  const gameOverIntro = document.createElement("div");
+  gameOverIntro.style.cssText =
+    "padding: 5px; margin-bottom: 8px; border: 1px solid #2B2B32; color: #AAA; font-size: 11px;";
+  gameOverIntro.textContent =
+    'Choose what happens automatically when the game-over screen appears (after beating the game). "Do nothing" leaves the choice to you.';
+  gameOverBody.appendChild(gameOverIntro);
+
+  for (const option of GAME_OVER_ACTIONS) {
+    appendGameOverActionRow(gameOverBody, option);
   }
 
   appendAPCheckIntervalControl(container);
@@ -1001,6 +1063,7 @@ $(() => {
     lootChests();
     clickQuickBarUpgrades();
     clickCharacterSkills();
+    handleGameOver();
 
     const { isPotionActive_ScrollsAutoFire, isPotionActive_InfiniteScrolls } =
       handlePotions(isBossEncounter, isEncounter);

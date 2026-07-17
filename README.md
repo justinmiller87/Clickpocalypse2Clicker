@@ -73,7 +73,8 @@ New features land first in `c2c.beta.user.js` before being promoted to the stabl
 
 ### Game end/reset
 
-- No logic, will not click anything if you beat the game.
+- By default, will not click anything if you beat the game — the choice between prestiging and continuing is left to you.
+- _(Beta only — see `c2c.beta.user.js`)_ The "Game Over Screen" section in Script Options lets you choose "Prestige" or "Continue" instead, which gets auto-clicked as soon as the game-over screen appears.
 
 # Todos
 
@@ -84,6 +85,10 @@ New features land first in `c2c.beta.user.js` before being promoted to the stabl
 - 'Fire Rain' and 'Spider Web' should have a delay in casting.
 
 # Updates
+
+### 2.6.5 (`c2c.beta.user.js`)
+
+- Added a "Game Over Screen" section to Script Options with a radio choice for what to do automatically when the game-over screen appears: "Do nothing" (default — leaves the choice to you), "Prestige", or "Continue". The chosen option is auto-clicked as soon as the screen shows up; choosing "Prestige" this way still triggers the automatic skill-priority reset from 2.6.4, exactly as if you'd clicked it yourself.
 
 ### 2.6.4 (`c2c.beta.user.js`)
 
