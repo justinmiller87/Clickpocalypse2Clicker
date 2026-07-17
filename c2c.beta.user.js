@@ -4,7 +4,7 @@
 // @description Clicker Bot for Clickpocalypse2 (Beta channel — new features land here first, may be less stable)
 // @include     http://minmaxia.com/c2/
 // @include     https://minmaxia.com/c2/
-// @version     2.6.2
+// @version     2.6.3
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @grant		GM.setValue
@@ -426,20 +426,25 @@ function appendAPCheckIntervalControl(container) {
   container.appendChild(row);
 }
 
-// <span> elements from appendSkillPriorityRow, indexed by charPos, so refreshSkillPriorityLabels
-// can update their text with the live character name/class without rebuilding the settings panel.
+// Row/label/input elements from appendSkillPriorityRow, indexed by charPos, so
+// refreshSkillPriorityRows can update them with live character data without rebuilding the panel.
+const skillPriorityRows = [];
 const skillPriorityLabels = [];
+const skillPriorityInputs = [];
 
 function appendSkillPriorityRow(container, charPos) {
   const row = document.createElement("div");
   row.style.cssText =
     "display: flex; align-items: center; padding: 3px 5px; border: 1px solid #2B2B32; margin-bottom: 2px;";
+  skillPriorityRows[charPos] = row;
 
   const label = document.createElement("span");
   label.textContent = `Character ${charPos + 1}:`;
   label.style.cssText = "flex: 1;";
   skillPriorityLabels[charPos] = label;
   row.appendChild(label);
+
+  skillPriorityInputs[charPos] = [];
 
   for (let col = 0; col < 4; col++) {
     const colLabel = document.createElement("label");
@@ -463,6 +468,7 @@ function appendSkillPriorityRow(container, charPos) {
       input.value = value;
       GM_setValue(`skillPriorityChar${charPos}Col${col}`, value);
     });
+    skillPriorityInputs[charPos].push(input);
 
     colLabel.appendChild(colText);
     colLabel.appendChild(input);
@@ -473,17 +479,28 @@ function appendSkillPriorityRow(container, charPos) {
 }
 
 // The settings panel is built once at startup, before character names/classes may be loaded, and
-// is only ever shown/hidden afterward rather than rebuilt — so labels are refreshed here instead,
-// each time the panel is opened, to reflect whatever's currently live in the game.
-function refreshSkillPriorityLabels() {
+// is only ever shown/hidden afterward rather than rebuilt — so rows are refreshed here instead,
+// each time the panel is opened, to reflect whatever's currently live in the game. A character
+// with no name yet hasn't been unlocked (e.g. the 5th party slot, before its AP upgrade), so its
+// row is shown as "Locked" and its priority inputs are disabled rather than left settable.
+function refreshSkillPriorityRows() {
   for (let charPos = 0; charPos < skillPriorityLabels.length; charPos++) {
     const label = skillPriorityLabels[charPos];
     if (!label) continue;
     const name = getCharacterNameByPos(charPos);
     const characterClass = getCharacterClassByPos(charPos);
-    label.textContent = name
-      ? `${name}${characterClass ? ` (${characterClass})` : ""}:`
-      : `Character ${charPos + 1}:`;
+    const locked = !name;
+
+    label.textContent = locked
+      ? "Locked:"
+      : `${name}${characterClass ? ` (${characterClass})` : ""}:`;
+
+    if (skillPriorityRows[charPos]) {
+      skillPriorityRows[charPos].style.opacity = locked ? "0.5" : "";
+    }
+    for (const input of skillPriorityInputs[charPos] || []) {
+      input.disabled = locked;
+    }
   }
 }
 
@@ -591,7 +608,7 @@ function addBotTab() {
     e.preventDefault();
     e.stopPropagation();
     const isOpen = settingsPanel.style.display !== "none";
-    if (!isOpen) refreshSkillPriorityLabels();
+    if (!isOpen) refreshSkillPriorityRows();
     settingsPanel.style.display = isOpen ? "none" : "block";
     li.className = isOpen ? "" : "selectedTab";
     const dungeonNotif = document.querySelector(".dungeonNotificationDiv");

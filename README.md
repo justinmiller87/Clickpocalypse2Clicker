@@ -85,6 +85,10 @@ New features land first in `c2c.beta.user.js` before being promoted to the stabl
 
 # Updates
 
+### 2.6.3 (`c2c.beta.user.js`)
+
+- Character Skill Priority rows for a not-yet-unlocked party slot (e.g. the 5th, before its AP upgrade) now show "Locked" and have their priority inputs disabled, instead of showing "Character 5" with editable-but-meaningless inputs.
+
 ### 2.6.2 (`c2c.beta.user.js`)
 
 - Renamed the beta script from `c2c.user.beta.js` to `c2c.beta.user.js`. Tampermonkey only recognizes a URL as an installable userscript when the path ends in `.user.js` exactly — `c2c.user.beta.js` ends in `.beta.js`, so links to it just opened as raw text instead of prompting an install/update, unlike the stable `c2c.user.js`. If you'd previously installed the old beta URL, reinstall from the new link above; the old one will 404 going forward.
