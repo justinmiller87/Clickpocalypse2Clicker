@@ -4,11 +4,11 @@
 // @description Clicker Bot for Clickpocalypse2 (Beta channel — new features land here first, may be less stable)
 // @include     http://minmaxia.com/c2/
 // @include     https://minmaxia.com/c2/
-// @version     2.6.0-beta7
+// @version     2.6.7
 // @grant       GM_setValue
 // @grant       GM_getValue
-// @grant		    GM.setValue
-// @grant		    GM.getValue
+// @grant       GM.setValue
+// @grant       GM.getValue
 // @updateURL   https://github.com/justinmiller87/Clickpocalypse2Clicker/raw/refs/heads/master/c2c.beta.user.js
 // @downloadURL https://github.com/justinmiller87/Clickpocalypse2Clicker/raw/refs/heads/master/c2c.beta.user.js
 // @require https://code.jquery.com/jquery-3.1.0.slim.min.js
