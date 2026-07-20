@@ -1,0 +1,3 @@
+# Local-only reference material (e.g. the game's own source, for lookups while developing the
+# script) — never committed or pushed.
+/gamesrc/

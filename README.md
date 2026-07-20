@@ -36,6 +36,8 @@ New features land first in `c2c.beta.user.js` before being promoted to the stabl
   **Castle/farm actions:**
   `Attack Castle`, `Buy Monster Farm`, `Harvest Rewards`, `Collect Item Sales`
 
+  _(Beta only — see `c2c.beta.user.js`)_ Next to these is a "Stop buying Monster Farms once this many castles remain" setting (default 5), for holding off on farm purchases near the end of a run to save gold for the next one.
+
   **Character/item actions:**
   `Equip All Items`, `Equip ` _(partial match — also catches individual item equips)_, `Level Up` _(partial match — character name is appended at runtime)_
 
@@ -85,6 +87,10 @@ New features land first in `c2c.beta.user.js` before being promoted to the stabl
 - 'Fire Rain' and 'Spider Web' should have a delay in casting.
 
 # Updates
+
+### 2.6.7 (`c2c.beta.user.js`)
+
+- Added a "Stop buying Monster Farms once this many castles remain" setting (default 5) next to the Castle / Farm Actions upgrades in Script Options. Useful when continuing a run after beating the final castle with a decent number of farms already purchased — holds off on buying more so gold can be saved for the next run instead. Reads "Castles Conquered: X/Y" from the Statistics tab; if that tab hasn't been opened yet this session (it isn't kept live in the background the way the quickbar/skill-tree/AP-tree are), farm-buying just proceeds as normal until it is.
 
 ### 2.6.6 (`c2c.beta.user.js`)
 

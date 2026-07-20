@@ -4,11 +4,11 @@
 // @description Clicker Bot for Clickpocalypse2 (Beta channel — new features land here first, may be less stable)
 // @include     http://minmaxia.com/c2/
 // @include     https://minmaxia.com/c2/
-// @version     2.6.6
+// @version     2.6.0-beta7
 // @grant       GM_setValue
 // @grant       GM_getValue
-// @grant		GM.setValue
-// @grant		GM.getValue
+// @grant		    GM.setValue
+// @grant		    GM.getValue
 // @updateURL   https://github.com/justinmiller87/Clickpocalypse2Clicker/raw/refs/heads/master/c2c.beta.user.js
 // @downloadURL https://github.com/justinmiller87/Clickpocalypse2Clicker/raw/refs/heads/master/c2c.beta.user.js
 // @require https://code.jquery.com/jquery-3.1.0.slim.min.js
@@ -220,12 +220,23 @@ let nextAPUpgradeCell = null;
  */
 let pendingSkillCheckCharPositions = new Set([0, 1, 2, 3, 4]);
 
+/*
+ * Once this many castles or fewer remain in the current run, stop clicking "Buy Monster Farm" —
+ * handy when continuing after beating the final castle, to save gold for the next run instead of
+ * sinking it into farms this one won't need much longer. See getCastlesRemaining().
+ */
+let stopBuyingFarmsAtCastlesRemaining = 5;
+
 function loadSkipSettings() {
   apUpgradeCheckIntervalSeconds = GM_getValue(
     "apUpgradeCheckIntervalSeconds",
     60,
   );
   gameOverAction = GM_getValue("gameOverAction", "none");
+  stopBuyingFarmsAtCastlesRemaining = GM_getValue(
+    "stopBuyingFarmsAtCastlesRemaining",
+    5,
+  );
   for (const category of UPGRADE_CATEGORIES) {
     for (const item of category.items) {
       skipSettings[item.key] = GM_getValue(item.key, item.defaultSkip);
@@ -447,6 +458,34 @@ function appendAPCheckIntervalControl(container) {
   container.appendChild(row);
 }
 
+function appendFarmStopThresholdControl(container) {
+  const row = document.createElement("label");
+  row.style.cssText =
+    "display: flex; align-items: center; padding: 3px 5px; border: 1px solid #2B2B32; margin-bottom: 8px; cursor: pointer;";
+
+  const labelText = document.createElement("span");
+  labelText.textContent =
+    "Stop buying Monster Farms once this many castles remain:";
+  labelText.style.cssText = "flex: 1;";
+
+  const input = document.createElement("input");
+  input.type = "number";
+  input.min = "0";
+  input.step = "1";
+  input.value = stopBuyingFarmsAtCastlesRemaining;
+  input.style.cssText = "width: 60px; margin-left: 6px;";
+  input.addEventListener("change", () => {
+    const value = Math.max(0, parseInt(input.value, 10) || 0);
+    stopBuyingFarmsAtCastlesRemaining = value;
+    input.value = value;
+    GM_setValue("stopBuyingFarmsAtCastlesRemaining", value);
+  });
+
+  row.appendChild(labelText);
+  row.appendChild(input);
+  container.appendChild(row);
+}
+
 const GAME_OVER_ACTIONS = [
   { value: "none", label: "Do nothing (default)" },
   { value: "prestige", label: "Prestige" },
@@ -613,6 +652,9 @@ function buildSettingsContent(container) {
     appendCategoryHeader(quickUpgradesBody, category.name);
     for (const item of category.items) {
       appendUpgradeRow(quickUpgradesBody, item);
+    }
+    if (category.name === "Castle / Farm Actions") {
+      appendFarmStopThresholdControl(quickUpgradesBody);
     }
   }
 
@@ -859,6 +901,30 @@ function findCharPosByName(name) {
   return null;
 }
 
+/*
+ * Reads "Castles Conquered: X/Y" from the Statistics tab and returns Y - X, or null if it isn't
+ * available (that tab only populates once you've opened it at least once this session — unlike
+ * the quickbar/skill-tree/AP-tree, it doesn't stay live in the background). A null/stale read just
+ * means the farm-buying cutoff below falls back to the default behavior of not restricting at all.
+ */
+function getCastlesRemaining() {
+  const label = $(".statisticsTableLabel").filter(function () {
+    return $(this).text().trim() === "Castles Conquered:";
+  });
+  if (!label.length) return null;
+
+  const match = label
+    .next()
+    .text()
+    .trim()
+    .match(/^(\d+)\/(\d+)$/);
+  if (!match) return null;
+
+  const conquered = parseInt(match[1], 10);
+  const total = parseInt(match[2], 10);
+  return total - conquered;
+}
+
 function clickQuickBarUpgrades() {
   /*
    * Find the lowest target level among all AFFORDABLE character level-ups, so we level everyone
@@ -881,6 +947,15 @@ function clickQuickBarUpgrades() {
     const upgradeBtn = $(`#upgradeButtonContainer_${i}`);
     const upgradeText = upgradeBtn.text();
     if (shouldSkipUpgrade(upgradeText)) continue;
+
+    if (upgradeText.indexOf("Buy Monster Farm") !== -1) {
+      const castlesRemaining = getCastlesRemaining();
+      if (
+        castlesRemaining !== null &&
+        castlesRemaining <= stopBuyingFarmsAtCastlesRemaining
+      )
+        continue;
+    }
 
     if (upgradeText.indexOf("Level Up") !== -1) {
       if (getLevelUpTargetLevel(upgradeBtn) !== minTargetLevel) continue;
